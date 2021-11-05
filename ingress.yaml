@@ -5,12 +5,12 @@ metadata:
   name: insample
 spec:
   rules:
-    - host: example.foo-10.com
+    - host: ui.7e815294e0264239948c.northeurope.aksapp.io
       http:
         paths:
           - backend: # How the ingress will handle the requests
               service:
-               name: react-ui # Which service the request will be forwarded to
+               name: helloservice # Which service the request will be forwarded to
                port:
                  name: http # Which port in that service
             path: / # Which path is this rule referring to
