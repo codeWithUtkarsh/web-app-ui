@@ -42,5 +42,5 @@ jobs:
         run: docker images $DOCKERHUB_USERNAME/$REPO_NAME --digests | grep ${{ steps.date.outputs.date }} | awk '{print $3}'
       -
         name: Test digest
-        run: echo  ${{ steps.digest.outputs }}
+        run: echo  ${{ steps.digest.outputs.digest }}
         
