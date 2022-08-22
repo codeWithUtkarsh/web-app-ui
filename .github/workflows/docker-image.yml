@@ -36,3 +36,11 @@ jobs:
       - 
         name: Docker Push
         run: docker push $DOCKERHUB_USERNAME/$REPO_NAME:${{ steps.date.outputs.date }}
+      -
+        name: Get digest
+        id: digest
+        run: docker image ls $DOCKERHUB_USERNAME/$REPO_NAME:${{ steps.date.outputs.date }} --digests | awk 'NR == 2 {print $3}'
+      -
+        name: Test digest
+        run: echo  ${{ steps.digest.outputs }}
+        
