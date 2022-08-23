@@ -8,7 +8,9 @@ on:
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-  REPO_NAME: ${{ secrets.REPO_NAME }}
+  REPO: ${{ secrets.REPO_NAME }}
+  OWNER: ${{ secrets.OWNER }}
+  TOKEN: ${{ secrets.OWNER }}
 
 jobs:
   docker:
@@ -32,15 +34,28 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m-%d--%M-%S')"
       - 
         name: Build the Docker image
-        run: docker build . --file Dockerfile --tag $DOCKERHUB_USERNAME/$REPO_NAME:${{ steps.date.outputs.date }}
+        run: docker build . --file Dockerfile --tag $DOCKERHUB_USERNAME/$REPO:${{ steps.date.outputs.date }}
       - 
         name: Docker Push
-        run: docker push $DOCKERHUB_USERNAME/$REPO_NAME:${{ steps.date.outputs.date }}
+        run: docker push $DOCKERHUB_USERNAME/$REPO:${{ steps.date.outputs.date }}
       -
         name: Get digest
         id: digest
-        run: echo "::set-output name=digest::$(docker images $DOCKERHUB_USERNAME/$REPO_NAME --digests | grep ${{ steps.date.outputs.date }} | awk '{print $3}')"
+        run: |
+          echo "::set-output name=digest::$(docker images $DOCKERHUB_USERNAME/$REPO --digests | grep ${{ steps.date.outputs.date }} | awk '{print $3}')"
+          echo "::set-output name=commit_sha::$(git rev-parse --short HEAD)"
       -
         name: Test digest
-        run: echo  ${{ steps.digest.outputs.digest }}
-        
+        run: |
+          echo  ${{ steps.digest.outputs.digest }}
+          echo  ${{ steps.digest.outputs.commit_sha }}
+      - 
+        name: Get Commit Details
+        id: commitDetails
+        run: |
+          echo "::set-output name=commitDetails::$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.digest.outputs.commit_sha }}
+      -
+        name: Get Commit Response
+        run: |
+          echo  ${{ steps.commitDetails.outputs.commitDetails }}
+          
