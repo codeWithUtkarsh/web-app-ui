@@ -33,29 +33,24 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d--%M-%S')"
       - 
-        name: Build the Docker image
-        run: docker build . --file Dockerfile --tag $DOCKERHUB_USERNAME/$REPO:${{ steps.date.outputs.date }}
-      - 
-        name: Docker Push
-        run: docker push $DOCKERHUB_USERNAME/$REPO:${{ steps.date.outputs.date }}
-      -
-        name: Get digest
-        id: digest
+        name: Build and Push the Docker image
         run: |
+          docker build . --file Dockerfile --tag $DOCKERHUB_USERNAME/$REPO:${{ steps.date.outputs.date }}
+          docker push $DOCKERHUB_USERNAME/$REPO:${{ steps.date.outputs.date }}
           echo "::set-output name=digest::$(docker images $DOCKERHUB_USERNAME/$REPO --digests | grep ${{ steps.date.outputs.date }} | awk '{print $3}')"
           echo "::set-output name=commit_sha::$(git rev-parse --short HEAD)"
       -
-        name: Test digest
+        name: Test Variables
         run: |
           echo  ${{ steps.digest.outputs.digest }}
           echo  ${{ steps.digest.outputs.commit_sha }}
       - 
-        name: Get Commit Details
-        id: commitDetails
+        name: Prepare Commit Data
+        id: commit_data
         run: |
-          echo "::set-output name=commitDetails::$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.digest.outputs.commit_sha }} | jq -r '{"commit":., "docker_digest":"${{ steps.digest.outputs.digest }}"}')" 
+          echo "::set-output name=commit_data::$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.digest.outputs.commit_sha }} | jq -r '{"commit":., "docker_digest":"${{ steps.digest.outputs.digest }}"}')" 
       -
         name: Get Commit Response
         run: |
-          echo  ${{ steps.commitDetails.outputs.commitDetails }}
+          echo  ${{ steps.commit_data.outputs.commit_data }}
           
