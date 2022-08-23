@@ -8,9 +8,9 @@ on:
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-  REPO: ${{ secrets.REPO }}
+  REPO: ${{ secrets.REPO_NAME }}
   OWNER: ${{ secrets.OWNER }}
-  TOKEN: ${{ secrets.TOKEN_GIT }}
+  TOKEN: ${{ secrets.OWNER }}
 
 jobs:
   docker:
@@ -53,7 +53,7 @@ jobs:
         name: Get Commit Details
         id: commitDetails
         run: |
-          echo "::set-output name=commitDetails::$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.digest.outputs.commit_sha }})"
+          echo "::set-output name=commitDetails::$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.digest.outputs.commit_sha }} | jq -r '{"commit":., "docker_digest":${{ steps.digest.outputs.digest }}}')" 
       -
         name: Get Commit Response
         run: |
