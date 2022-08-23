@@ -39,7 +39,7 @@ jobs:
       -
         name: Get digest
         id: digest
-        run: docker images $DOCKERHUB_USERNAME/$REPO_NAME --digests | grep ${{ steps.date.outputs.date }} | awk '{print $3}'
+        run: echo "::set-output name=digest::$(docker images $DOCKERHUB_USERNAME/$REPO_NAME --digests | grep ${{ steps.date.outputs.date }} | awk '{print $3}')"
       -
         name: Test digest
         run: echo  ${{ steps.digest.outputs.digest }}
