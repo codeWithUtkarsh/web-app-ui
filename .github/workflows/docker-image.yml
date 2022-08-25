@@ -49,26 +49,34 @@ jobs:
       - 
         name: Send Keptn Event
         run: |
-          send_keptn_payload="$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.digest.outputs.commit_sha }} | jq -r '{"commit":., "docker_digest":"${{ steps.digest.outputs.digest }}"}')"
-          # echo "$send_keptn_payload"
+          APP_COMMIT_DETAILS="$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.digest.outputs.commit_sha }} | jq -r '{"commit":., "docker_digest":"${{ steps.digest.outputs.digest }}"}')"
 
-          generate_keptn_data()
+          generate_application_data()
           {
             cat <<EOF
           {
-            "shkeptncontext": "string",
-            "triggeredid": "string",
-            "gitcommitid": "string",
-            "shkeptnversion": "string",
-            "specversion": "string",
-            "contenttype": "string",
-            "data": $send_keptn_payload,
-            "id": "string",
-            "time": "2022-08-25T05:17:32.420Z",
-            "type": "string",
-            "extensions": {},
-            "source": "string"
-          }
+              "data": {
+                "configurationChange": {
+                  "values": {
+                    "image": "ghcr.io/podtato-head/podtatoserver:v0.1.1"
+                  }
+                },
+                "applicationMeta": $APP_COMMIT_DETAILS
+                "deployment": {
+                  "deploymentstrategy": "blue_green_service"
+                },
+                "message": "",
+                "project": "ms1",
+                "result": "",
+                "service": "helloservice",
+                "stage": "hardening",
+                "status": ""
+              },
+              "source": "gh",
+              "specversion": "1.0",
+              "type": "sh.keptn.event.hardening.delivery.deployment",
+              "shkeptnspecversion": "0.2.1"
+            }
           EOF
           }
 
@@ -77,37 +85,4 @@ jobs:
             -H 'accept: application/json' \
             -H "x-token: $KEPTN_TOKEN" \
             -H 'Content-Type: application/json' \
-            -d "$(generate_keptn_data)")"
-      - name: Send Keptn Event
-        id: send-keptn-event
-        uses: keptn/gh-action-send-event@main
-        with:
-          keptnApiUrl: "http://20.22.144.90.nip.io/api"
-          keptnApiToken: $KEPTN_TOKEN
-          event: |
-            {
-              "data": {
-                "configurationChange": {
-                  "values": {
-                    "image": "docker.io/mongo:4.2.2"
-                  }
-                },
-                "deployment": {
-                  "deploymentstrategy": "direct"
-                },
-                "message": "",
-                "project": "sockshop2",
-                "result": "",
-                "service": "carts-db",
-                "stage": "dev",
-                "status": ""
-              },
-              "source": "gh",
-              "specversion": "1.0",
-              "type": "sh.keptn.event.dev.delivery.triggered",
-              "shkeptnspecversion": "0.2.1"
-            }
-      - name: Print the Keptn Context
-        run: echo "The keptn context is ${{ steps.send-keptn-event.outputs.keptnContext }}"
-            
-          
+            -d "$(generate_application_data)")"
