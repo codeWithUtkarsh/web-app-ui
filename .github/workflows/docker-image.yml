@@ -12,6 +12,7 @@ env:
   OWNER: ${{ secrets.OWNER }}
   TOKEN: ${{ secrets.TOKEN_GIT }}
   KEPTN_TOKEN: ${{ secrets.KEPTN_TOKEN }}
+  KEPTN_API_URL: ${{ secrets.KEPTN_API_URL }}
 
 jobs:
   docker:
@@ -77,4 +78,36 @@ jobs:
             -H "x-token: $KEPTN_TOKEN" \
             -H 'Content-Type: application/json' \
             -d "$(generate_keptn_data)")"
+      - name: Send Keptn Event
+        id: send-keptn-event
+        uses: keptn/gh-action-send-event@main
+        with:
+          keptnApiUrl: $KEPTN_API_URL
+          keptnApiToken: $KEPTN_TOKEN
+          event: |
+            {
+              "data": {
+                "configurationChange": {
+                  "values": {
+                    "image": "docker.io/mongo:4.2.2"
+                  }
+                },
+                "deployment": {
+                  "deploymentstrategy": "direct"
+                },
+                "message": "",
+                "project": "sockshop2",
+                "result": "",
+                "service": "carts-db",
+                "stage": "dev",
+                "status": ""
+              },
+              "source": "gh",
+              "specversion": "1.0",
+              "type": "sh.keptn.event.dev.delivery.triggered",
+              "shkeptnspecversion": "0.2.1"
+            }
+      - name: Print the Keptn Context
+        run: echo "The keptn context is ${{ steps.send-keptn-event.outputs.keptnContext }}"
+            
           
