@@ -86,3 +86,4 @@ jobs:
             -H "x-token: $KEPTN_TOKEN" \
             -H 'Content-Type: application/json' \
             -d "$(generate_application_data)")"
+
