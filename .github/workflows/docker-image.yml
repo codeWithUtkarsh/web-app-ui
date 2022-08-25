@@ -11,6 +11,7 @@ env:
   REPO: ${{ secrets.REPO }}
   OWNER: ${{ secrets.OWNER }}
   TOKEN: ${{ secrets.TOKEN_GIT }}
+  KEPTN_TOKEN: ${{ secrets.KEPTN_TOKEN }}
 
 jobs:
   docker:
@@ -47,7 +48,7 @@ jobs:
       - 
         name: Send Keptn Event
         run: |
-          send_keptn_payload="$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token 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" https://api.github.com/repos/codeWithUtkarsh/web-app-ui/commits/$commit | jq -r '{"commit":., "docker_digest":"sha256:bfe4fb2b247328666b99a4b4d02efba9151c43782eda347a55e64ff42db57e7c"}')"
+          send_keptn_payload="$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.digest.outputs.commit_sha }} | jq -r '{"commit":., "docker_digest":"${{ steps.digest.outputs.digest }}"}')"
           # echo "$send_keptn_payload"
 
           generate_keptn_data()
@@ -73,7 +74,7 @@ jobs:
           echo "$(curl -X 'POST' \
             'http://20.22.144.90.nip.io/api/v1/event' \
             -H 'accept: application/json' \
-            -H 'x-token: 9mP2nHY39hMSHIBDmg1U9ZcUJ0u6vaefQ3JJrOZ2ipnsf' \
+            -H "x-token: $KEPTN_TOKEN" \
             -H 'Content-Type: application/json' \
             -d "$(generate_keptn_data)")"
           
