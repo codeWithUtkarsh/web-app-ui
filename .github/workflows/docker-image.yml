@@ -64,7 +64,7 @@ jobs:
                   }
                 },
                 "applicationMeta": $APP_COMMIT_DETAILS
-                "deployment": {
+                ,"deployment": {
                   "deploymentstrategy": "blue_green_service"
                 },
                 "message": "",
