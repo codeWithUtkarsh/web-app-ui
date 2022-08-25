@@ -51,8 +51,7 @@ jobs:
         name: Send Keptn Event
         run: |
           APP_COMMIT_DETAILS="$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.docker.outputs.commit_sha }} | jq -r '{"commit":., "docker_digest":"${{ steps.docker.outputs.digest }}"}')"
-          echo "$APP_COMMIT_DETAILS"
-
+          
           generate_application_data()
           {
             cat <<EOF
@@ -60,7 +59,7 @@ jobs:
               "data": {
                 "configurationChange": {
                   "values": {
-                    "image": "ghcr.io/podtato-head/podtatoserver:v0.1.1"
+                    "image": "$DOCKERHUB_USERNAME/$REPO:${{ steps.date.outputs.date }}"
                   }
                 },
                 "applicationMeta": $APP_COMMIT_DETAILS
@@ -70,7 +69,7 @@ jobs:
                 "message": "",
                 "project": "ms1",
                 "result": "",
-                "service": "helloservice",
+                "service": "$REPO",
                 "stage": "hardening",
                 "status": ""
               },
@@ -81,8 +80,7 @@ jobs:
             }
           EOF
           }
-
-          echo "$(generate_application_data)"
+          
           echo "$(curl -X 'POST' \
             'http://20.22.144.90.nip.io/api/v1/event' \
             -H 'accept: application/json' \
