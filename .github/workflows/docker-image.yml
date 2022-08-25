@@ -45,12 +45,35 @@ jobs:
           echo  ${{ steps.digest.outputs.digest }}
           echo  ${{ steps.digest.outputs.commit_sha }}
       - 
-        name: Prepare Commit Data
-        id: commit_data
+        name: Send Keptn Event
         run: |
-          echo "::set-output name=commit_data::$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.digest.outputs.commit_sha }} | jq -r '{"commit":., "docker_digest":"${{ steps.digest.outputs.digest }}"}')" 
-      -
-        name: Get Commit Response
-        run: |
-          echo  ${{ steps.commit_data.outputs.commit_data }}
+          send_keptn_payload="$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token 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" https://api.github.com/repos/codeWithUtkarsh/web-app-ui/commits/$commit | jq -r '{"commit":., "docker_digest":"sha256:bfe4fb2b247328666b99a4b4d02efba9151c43782eda347a55e64ff42db57e7c"}')"
+          # echo "$send_keptn_payload"
+
+          generate_keptn_data()
+          {
+            cat <<EOF
+          {
+            "shkeptncontext": "string",
+            "triggeredid": "string",
+            "gitcommitid": "string",
+            "shkeptnversion": "string",
+            "specversion": "string",
+            "contenttype": "string",
+            "data": $send_keptn_payload,
+            "id": "string",
+            "time": "2022-08-25T05:17:32.420Z",
+            "type": "string",
+            "extensions": {},
+            "source": "string"
+          }
+          EOF
+          }
+
+          echo "$(curl -X 'POST' \
+            'http://20.22.144.90.nip.io/api/v1/event' \
+            -H 'accept: application/json' \
+            -H 'x-token: 9mP2nHY39hMSHIBDmg1U9ZcUJ0u6vaefQ3JJrOZ2ipnsf' \
+            -H 'Content-Type: application/json' \
+            -d "$(generate_keptn_data)")"
           
