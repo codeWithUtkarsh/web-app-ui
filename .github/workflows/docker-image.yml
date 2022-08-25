@@ -9,8 +9,8 @@ env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
   REPO: ${{ secrets.REPO }}
-  OWNER: ${{ secrets.OWNER }}
-  TOKEN: ${{ secrets.TOKEN_GIT }}
+  OWNER: ${{ github.repository_owner }}
+  TOKEN: ${{ github.token }}
   KEPTN_TOKEN: ${{ secrets.KEPTN_TOKEN }}
   KEPTN_API_URL: ${{ secrets.KEPTN_API_URL }}
 
@@ -36,6 +36,7 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m-%d--%M-%S')"
       - 
         name: Build and Push the Docker image
+        id: docker
         run: |
           docker build . --file Dockerfile --tag $DOCKERHUB_USERNAME/$REPO:${{ steps.date.outputs.date }}
           docker push $DOCKERHUB_USERNAME/$REPO:${{ steps.date.outputs.date }}
@@ -44,13 +45,13 @@ jobs:
       -
         name: Test Variables
         run: |
-          echo  ${{ steps.digest.outputs.digest }}
-          echo  ${{ steps.digest.outputs.commit_sha }}
+          echo  ${{ steps.docker.outputs.digest }}
+          echo  ${{ steps.docker.outputs.commit_sha }}
       - 
         name: Send Keptn Event
         run: |
-          APP_COMMIT_DETAILS="$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.digest.outputs.commit_sha }} | jq -r '{"commit":., "docker_digest":"${{ steps.digest.outputs.digest }}"}')"
-
+          APP_COMMIT_DETAILS="$(curl -H "Accept: application/vnd.github+json" -H "Authorization: token $TOKEN" https://api.github.com/repos/$OWNER/$REPO/commits/${{ steps.docker.outputs.commit_sha }} | jq -r '{"commit":., "docker_digest":"${{ steps.docker.outputs.digest }}"}')"
+          
           generate_application_data()
           {
             cat <<EOF
